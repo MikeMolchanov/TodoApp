@@ -8,6 +8,7 @@
 import Foundation
 
 struct Task: Codable {
+    let id: UUID //уникальный идентификатор
     var title: String
     var isDone: Bool
 }

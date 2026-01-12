@@ -29,16 +29,16 @@ final class TaskStorage {
         save()
     }
     
-    func toggleDone( at index: Int ) {
+    func toggleDone(_ task: Task) {
+        guard let index = tasks.firstIndex(where: { $0.id == task.id }) else {return}
         tasks[index].isDone.toggle()
         sort()
         save()
     }
     
-    func updateTitle(at index: Int, title: String) {
-        var task = tasks[index]
-        task.title = title
-        tasks[index] = task
+    func updateTitle(_ task: Task, title: String) {
+        guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
+        tasks[index].title = title
         save()
     }
     

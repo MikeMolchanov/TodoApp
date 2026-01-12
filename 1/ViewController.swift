@@ -45,15 +45,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         //достаем ячейку
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskCell", for: indexPath) as! TaskCell
-        cell.onToggleDone = { [weak self] in
-            self?.storage.toggleDone(at: indexPath.row)
-            self?.tableView.reloadData()}
-        //достаем задачу
+        
         let task = storage.tasks[indexPath.row]
         cell.configure(with: task)
         
+        cell.onToggleDone = { [weak self] in
+            self?.storage.toggleDone(task)
+            self?.tableView.reloadData()
+        }
+        
         cell.onEdit = { [weak self] in
-            self?.showEditAlert(at: indexPath.row)
+            self?.showEditAlert(for: task)
         }
         
         return cell
@@ -78,7 +80,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         let okAction = UIAlertAction(title: "OK", style: .default, handler: {_ in
             if let text = alert.textFields?.first?.text, !text.isEmpty {
                 //создаем новую задачу с обновленным title
-                self.storage.updateTitle(at: indexPath.row, title: text)
+                self.storage.updateTitle(task, title: text)
 
                 self.tableView.reloadRows(at: [indexPath], with: .automatic)
             }
@@ -95,7 +97,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         let okAction = UIAlertAction(title: "OK", style: .default, handler: {_ in
             if let text = alert.textFields?.first?.text, !text.isEmpty {
-                let newTask = Task(title: text, isDone: false)
+                let newTask = Task(id: UUID(), title: text, isDone: false)
                 self.storage.add(newTask)
                 self.tableView.reloadData()
             }
@@ -104,8 +106,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         present(alert, animated: true, completion: nil)
     }
     
-    private func showEditAlert(at index: Int) {
-        let task = storage.tasks[index]
+    private func showEditAlert(for task: Task) {
+        
         let alert = UIAlertController(title: "Редактировать задачу",
                                       message: nil,
                                       preferredStyle: .alert
@@ -118,7 +120,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             guard let text = alert.textFields?.first?.text,
             !text.isEmpty else { return }
         
-            self?.storage.updateTitle(at: index, title: text)
+            self?.storage.updateTitle(task, title: text)
             self?.tableView.reloadData()
         }
         
