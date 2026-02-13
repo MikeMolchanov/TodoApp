@@ -19,6 +19,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         // настраиваем tableView
         
         tableView.frame = CGRect(x: 0, y: 300, width: view.frame.width, height: view.frame.height - 300)
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 60
         tableView.dataSource = self
         tableView.delegate = self
         
@@ -48,10 +50,29 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         let task = storage.tasks[indexPath.row]
         cell.configure(with: task)
+        cell.animateStatusChange(isDone: task.isDone)
         
-        cell.onToggleDone = { [weak self] in
-            self?.storage.toggleDone(task)
-            self?.tableView.reloadData()
+        cell.onToggleDone = { [weak self, weak cell] in
+            guard let self = self,
+            let cell = cell,
+                  let indexPath = self.tableView.indexPath(for: cell)
+            else { return }
+            
+            let currentTask = self.storage.tasks[indexPath.row]
+            
+            self.storage.toggleDone(currentTask)
+            
+            guard let newIndex = self.storage.tasks.firstIndex(where: { $0.id == currentTask.id }) else { return }
+            let newIndexPath = IndexPath(row: newIndex, section: 0)
+            
+            let updatedTask = self.storage.tasks[newIndex]
+            
+            
+            cell.configure(with: updatedTask)
+            
+            self.tableView.moveRow(at: indexPath, to: newIndexPath)
+            
+            self.tableView.reloadRows(at: [newIndexPath], with: .none)
         }
         
         cell.onEdit = { [weak self] in

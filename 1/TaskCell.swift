@@ -34,29 +34,69 @@ final class TaskCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        titleLabel.text = nil
+        titleLabel.textColor = .label
+        statusImageView.image = nil
+        
+        onToggleDone = nil
+        onEdit = nil
+    }
+    
+    func animateStatusChange(isDone: Bool) {
+        let newImageName = isDone ? "checkmark.circle.fill" : "circle"
+        
+        UIView.animate(withDuration: 0.15, animations: {
+            self.statusImageView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        }) { _ in
+            self.statusImageView.image = UIImage(systemName: newImageName)
+            
+            UIView.animate(withDuration: 0.15) {
+                self.statusImageView.transform = .identity
+            }
+        }
+    }
+    
     func setupUI() {
         selectionStyle = .none
         
-        statusImageView.frame = CGRect(x: 16, y: 15, width: 24, height: 24)
+        statusImageView.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        editButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        titleLabel.numberOfLines = 0
         statusImageView.contentMode = .scaleAspectFit
         statusImageView.isUserInteractionEnabled = true
+        
         contentView.addSubview(statusImageView)
+        contentView.addSubview(titleLabel)
+        contentView.addSubview(editButton)
+        
+        NSLayoutConstraint.activate([
+            statusImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            statusImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            statusImageView.widthAnchor.constraint(equalToConstant: 24),
+            statusImageView.heightAnchor.constraint(equalToConstant: 24),
+            
+            editButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            editButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            editButton.widthAnchor.constraint(equalToConstant: 24),
+            editButton.heightAnchor.constraint(equalToConstant: 24),
+            
+            titleLabel.leadingAnchor.constraint(equalTo: statusImageView.trailingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: editButton.leadingAnchor, constant: -16),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+        ])
         
         let tapGesture = UITapGestureRecognizer(target: self,
                                                 action: #selector(didTapStatus))
         statusImageView.addGestureRecognizer(tapGesture)
         
-        titleLabel.frame = CGRect(x: 56, y: 15, width: 250, height: 24)
-        titleLabel.font = .systemFont(ofSize: 16)
-        contentView.addSubview(titleLabel)
-        
-        editButton.frame = CGRect(
-            x: Int(contentView.bounds.width) - 44,
-            y: 10,
-            width: 24,
-            height: 24)
         editButton.addTarget(self, action: #selector(editTapped), for: .touchUpInside)
-        contentView.addSubview(editButton)
+        
     }
     
     @objc private func didTapStatus() {
@@ -77,5 +117,4 @@ final class TaskCell: UITableViewCell {
             titleLabel.textColor = .label
         }
     }
-    
 }
