@@ -7,10 +7,13 @@
 
 import UIKit
 
-class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating {
     
     let storage = TaskStorage()
     let tableView = UITableView()
+    
+    private var filteredTasks: [Task] = []
+    private var isSearching = false
     
     
     override func viewDidLoad() {
@@ -18,7 +21,19 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         // Do any additional setup after loading the view.
         // настраиваем tableView
         
-        tableView.frame = CGRect(x: 0, y: 300, width: view.frame.width, height: view.frame.height - 300)
+        view.backgroundColor = .systemBackground
+        tableView.backgroundColor = .systemBackground
+        
+        setupSearch()
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .add,
+            target: self,
+            action: #selector(showField)
+        )
+        
+//        tableView.frame = CGRect(x: 0, y: 300, width: view.frame.width, height: view.frame.height - 300)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
         tableView.dataSource = self
@@ -28,19 +43,21 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         tableView.register(TaskCell.self, forCellReuseIdentifier: "TaskCell")
         
         view.addSubview(tableView)
-        
-        // кнопка добавления задачи
-        let button = UIButton(type: .system)
-        button.setTitle("Добавить задачу", for: .normal)
-        button.frame = CGRect(x: 100, y: 200, width: 200, height: 50)
-        button.addTarget(self, action: #selector(showField), for: .touchUpInside)
-        view.addSubview(button)
+    
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
         
     }
     
     // сколько строк в таблице
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return storage.tasks.count
+        return isSearching
+        ? filteredTasks.count
+        : storage.tasks.count
     }
     
     // что показывать в каждой ячейке
@@ -48,7 +65,10 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         //достаем ячейку
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskCell", for: indexPath) as! TaskCell
         
-        let task = storage.tasks[indexPath.row]
+        let task = isSearching
+        ? filteredTasks[indexPath.row]
+        : storage.tasks[indexPath.row]
+        
         cell.configure(with: task)
         cell.animateStatusChange(isDone: task.isDone)
         
@@ -112,6 +132,23 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let text = searchController.searchBar.text,
+              !text.isEmpty else {
+            isSearching = false
+            filteredTasks.removeAll()
+            tableView.reloadData()
+            return
+        }
+        
+        isSearching = true
+        filteredTasks = storage.tasks.filter {
+            $0.title.lowercased().contains(text.lowercased())
+        }
+        
+        tableView.reloadData()
+    }
+    
     @objc func showField() {
         let alert = UIAlertController(title: "", message: "", preferredStyle: .alert)
         alert.addTextField()
@@ -125,6 +162,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         })
         alert.addAction(okAction)
         present(alert, animated: true, completion: nil)
+    }
+    
+    private func setupSearch() {
+        let searchController = UISearchController(searchResultsController: nil)
+        
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Поиск задач"
+        
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
     }
     
     private func showEditAlert(for task: Task) {
