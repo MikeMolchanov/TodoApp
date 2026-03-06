@@ -14,12 +14,14 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     private var filteredTasks: [Task] = []
     private var isSearching = false
-    
+    private let emptyLabel = UILabel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
-        // настраиваем tableView
+        
+        setupEmptyLabel()
+        updateEmptyState()
+        
         
         view.backgroundColor = .systemBackground
         tableView.backgroundColor = .systemBackground
@@ -32,7 +34,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             action: #selector(showField)
         )
         
-//        tableView.frame = CGRect(x: 0, y: 300, width: view.frame.width, height: view.frame.height - 300)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
@@ -98,18 +99,14 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         cell.onEdit = { [weak self] in
             self?.showEditAlert(for: task)
         }
-        
         return cell
     }
-    
     // удаление строки из таблицы
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        // если editingStyle == delete
-        // удалить элемент из массива
-        // удалить строку из таблицы
         if editingStyle == .delete {
             storage.delete(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
+            updateEmptyState()
         }
     }
     
@@ -137,6 +134,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
               !text.isEmpty else {
             isSearching = false
             filteredTasks.removeAll()
+            updateEmptyState()
             tableView.reloadData()
             return
         }
@@ -145,7 +143,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         filteredTasks = storage.tasks.filter {
             $0.title.lowercased().contains(text.lowercased())
         }
-        
+        updateEmptyState()
         tableView.reloadData()
     }
     
@@ -157,13 +155,51 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             if let text = alert.textFields?.first?.text, !text.isEmpty {
                 let newTask = Task(id: UUID(), title: text, isDone: false)
                 self.storage.add(newTask)
-                self.tableView.reloadData()
+                
+                if self.isSearching {
+                    self.tableView.reloadData()
+                    self.updateEmptyState()
+                } else {
+                    let newIndex = self.storage.tasks.count - 1
+                    let newIndexPath = IndexPath(row: newIndex, section: 0)
+                    
+                    self.tableView.insertRows(at: [newIndexPath], with: .automatic)
+                    self.updateEmptyState()
+                }
             }
         })
         alert.addAction(okAction)
         present(alert, animated: true, completion: nil)
     }
     
+    private func setupEmptyLabel() {
+        emptyLabel.text = "Нет задач"
+        emptyLabel.textAlignment = .center
+        emptyLabel.textColor = .secondaryLabel
+        emptyLabel.font = .systemFont(ofSize: 18)
+        emptyLabel.isHidden = true
+        
+        emptyLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(emptyLabel)
+        
+        NSLayoutConstraint.activate([
+            emptyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+    private func updateEmptyState() {
+        let isEmpty: Bool
+        if isSearching {
+            isEmpty = filteredTasks.isEmpty
+            emptyLabel.text = "Ничего не найдено"
+        } else {
+            isEmpty = storage.tasks.isEmpty
+            emptyLabel.text = "Нет задач"
+        }
+        
+        tableView.isHidden = isEmpty
+        emptyLabel.isHidden = !isEmpty
+    }
     private func setupSearch() {
         let searchController = UISearchController(searchResultsController: nil)
         
@@ -186,11 +222,27 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         }
         
         let okAction = UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            guard let text = alert.textFields?.first?.text,
+            guard let self = self,
+                  let text = alert.textFields?.first?.text,
             !text.isEmpty else { return }
         
-            self?.storage.updateTitle(task, title: text)
-            self?.tableView.reloadData()
+            self.storage.updateTitle(task, title: text)
+            
+            // находим обновлённую задачу в массиве
+            guard let updatedIndex = self.storage.tasks.firstIndex(where: { $0.id == task.id}) else { return }
+            let indexPath = IndexPath(row: updatedIndex, section: 0)
+            
+            if self.isSearching {
+                if let searchText = self.navigationItem.searchController?.searchBar.text {
+                    self.filteredTasks = self.storage.tasks.filter {
+                        $0.title.lowercased().contains(searchText.lowercased())
+                    }
+                }
+                self.tableView.reloadData()
+                updateEmptyState()
+            } else {
+                self.tableView.reloadRows(at: [indexPath], with: .automatic)
+            }
         }
         
         alert.addAction(okAction)
