@@ -53,6 +53,8 @@ final class TaskCell: UITableViewCell {
         }) { _ in
             self.statusImageView.image = UIImage(systemName: newImageName)
             
+            self.titleLabel.textColor = isDone ? .secondaryLabel : .label
+            
             UIView.animate(withDuration: 0.15) {
                 self.statusImageView.transform = .identity
             }
@@ -87,8 +89,8 @@ final class TaskCell: UITableViewCell {
             
             titleLabel.leadingAnchor.constraint(equalTo: statusImageView.trailingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: editButton.leadingAnchor, constant: -16),
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+            titleLabel.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 12),
+            titleLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -12)
         ])
         
         let tapGesture = UITapGestureRecognizer(target: self,

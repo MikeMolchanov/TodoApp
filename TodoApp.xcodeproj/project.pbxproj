@@ -10,6 +10,8 @@
 		870CDCB52F005A8500A4A992 /* TaskCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 870CDCB42F005A8500A4A992 /* TaskCell.swift */; };
 		87C773C32EF702C200609B05 /* Task.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87C773C22EF702C200609B05 /* Task.swift */; };
 		87C773C52EF704F200609B05 /* TaskStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87C773C42EF704F200609B05 /* TaskStorage.swift */; };
+		87CA0C472F7A7EA700CCA47B /* TodoDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87CA0C462F7A7EA700CCA47B /* TodoDTO.swift */; };
+		87CA0C492F7A833700CCA47B /* TodoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87CA0C482F7A833700CCA47B /* TodoService.swift */; };
 		87CBDEB52EE48A5E00F89507 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87CBDEB42EE48A5E00F89507 /* AppDelegate.swift */; };
 		87CBDEB72EE48A5E00F89507 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87CBDEB62EE48A5E00F89507 /* SceneDelegate.swift */; };
 		87CBDEB92EE48A5E00F89507 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87CBDEB82EE48A5E00F89507 /* ViewController.swift */; };
@@ -22,6 +24,8 @@
 		870CDCB42F005A8500A4A992 /* TaskCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskCell.swift; sourceTree = "<group>"; };
 		87C773C22EF702C200609B05 /* Task.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Task.swift; sourceTree = "<group>"; };
 		87C773C42EF704F200609B05 /* TaskStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskStorage.swift; sourceTree = "<group>"; };
+		87CA0C462F7A7EA700CCA47B /* TodoDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoDTO.swift; sourceTree = "<group>"; };
+		87CA0C482F7A833700CCA47B /* TodoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoService.swift; sourceTree = "<group>"; };
 		87CBDEB12EE48A5E00F89507 /* TodoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TodoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		87CBDEB42EE48A5E00F89507 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		87CBDEB62EE48A5E00F89507 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -66,7 +70,9 @@
 				87CBDEB62EE48A5E00F89507 /* SceneDelegate.swift */,
 				87CBDEB82EE48A5E00F89507 /* ViewController.swift */,
 				87C773C22EF702C200609B05 /* Task.swift */,
+				87CA0C462F7A7EA700CCA47B /* TodoDTO.swift */,
 				870CDCB42F005A8500A4A992 /* TaskCell.swift */,
+				87CA0C482F7A833700CCA47B /* TodoService.swift */,
 				87C773C42EF704F200609B05 /* TaskStorage.swift */,
 				87CBDEBA2EE48A5E00F89507 /* Main.storyboard */,
 				87CBDEBD2EE48A6000F89507 /* Assets.xcassets */,
@@ -149,6 +155,8 @@
 			files = (
 				87C773C32EF702C200609B05 /* Task.swift in Sources */,
 				87CBDEB92EE48A5E00F89507 /* ViewController.swift in Sources */,
+				87CA0C472F7A7EA700CCA47B /* TodoDTO.swift in Sources */,
+				87CA0C492F7A833700CCA47B /* TodoService.swift in Sources */,
 				87CBDEB52EE48A5E00F89507 /* AppDelegate.swift in Sources */,
 				87C773C52EF704F200609B05 /* TaskStorage.swift in Sources */,
 				870CDCB52F005A8500A4A992 /* TaskCell.swift in Sources */,

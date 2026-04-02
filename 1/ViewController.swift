@@ -9,9 +9,11 @@ import UIKit
 
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating {
     
+    let service = TodoService()
     let storage = TaskStorage()
     let tableView = UITableView()
     
+    private let loader = UIActivityIndicatorView(style: .large)
     private var filteredTasks: [Task] = []
     private var isSearching = false
     private let emptyLabel = UILabel()
@@ -21,7 +23,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         setupEmptyLabel()
         updateEmptyState()
-        
         
         view.backgroundColor = .systemBackground
         tableView.backgroundColor = .systemBackground
@@ -40,7 +41,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         tableView.dataSource = self
         tableView.delegate = self
         
-        // регистрируем кастомную ячейку
         tableView.register(TaskCell.self, forCellReuseIdentifier: "TaskCell")
         
         view.addSubview(tableView)
@@ -52,18 +52,24 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
+        loader.center = view.center
+        loader.hidesWhenStopped = true
+        view.addSubview(loader)
+        
+        if storage.tasks.isEmpty {
+            loader.startAnimating()
+            fetchTasks()
+        }
     }
     
-    // сколько строк в таблице
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return isSearching
         ? filteredTasks.count
         : storage.tasks.count
     }
     
-    // что показывать в каждой ячейке
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        //достаем ячейку
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskCell", for: indexPath) as! TaskCell
         
         let task = isSearching
@@ -71,7 +77,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         : storage.tasks[indexPath.row]
         
         cell.configure(with: task)
-        cell.animateStatusChange(isDone: task.isDone)
         
         cell.onToggleDone = { [weak self, weak cell] in
             guard let self = self,
@@ -89,11 +94,9 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             let updatedTask = self.storage.tasks[newIndex]
             
             
-            cell.configure(with: updatedTask)
+            cell.animateStatusChange(isDone: updatedTask.isDone)
             
             self.tableView.moveRow(at: indexPath, to: newIndexPath)
-            
-            self.tableView.reloadRows(at: [newIndexPath], with: .none)
         }
         
         cell.onEdit = { [weak self] in
@@ -160,16 +163,44 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                     self.tableView.reloadData()
                     self.updateEmptyState()
                 } else {
-                    let newIndex = self.storage.tasks.count - 1
-                    let newIndexPath = IndexPath(row: newIndex, section: 0)
-                    
-                    self.tableView.insertRows(at: [newIndexPath], with: .automatic)
+                    self.tableView.reloadData()
                     self.updateEmptyState()
                 }
             }
         })
         alert.addAction(okAction)
         present(alert, animated: true, completion: nil)
+    }
+    
+    private func fetchTasks() {
+        service.fetchTodos { [weak self] result in
+            DispatchQueue.main.async {
+                
+                self?.loader.stopAnimating()
+                
+                switch result {
+                case .success(let tasks):
+                    self?.storage.setTasks(tasks: tasks)
+                    self?.tableView.reloadData()
+                    self?.updateEmptyState()
+                    
+                case .failure(let error):
+                    self?.showError(error: error)
+                }
+            }
+        }
+    }
+    
+    private func showError(error: Error) {
+        let alert = UIAlertController(
+            title: "Ошибка",
+            message: error.localizedDescription,
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        present(alert, animated: true)
     }
     
     private func setupEmptyLabel() {

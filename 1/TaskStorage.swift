@@ -42,6 +42,12 @@ final class TaskStorage {
         save()
     }
     
+    func setTasks( tasks: [Task]) {
+        self.tasks = tasks
+        sort()
+        save()
+    }
+    
     // MARK: - Private
     
     private func sort() {
